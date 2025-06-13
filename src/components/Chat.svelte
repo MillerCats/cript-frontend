@@ -15,8 +15,7 @@
       },
     }).then((response) => response.json());
     keys = res;
-    console.log(res);
-    expand = !expand;
+    expand = true;
   }
 
   let messageCrypts = $state([]);
@@ -53,7 +52,7 @@
       }),
     }).then((response) => response.json());
     messageDecrypt[index] = res.mensaje;
-    showStates[index] = !showStates[index];
+    showStates[index] = true;
   }
 </script>
 
@@ -63,7 +62,9 @@
     <div class="flex flex-row justify-center items-center m-4">
       <button
         class="bg-green-100 p-2 rounded-xl shadow-sm cursor-pointer mx-5"
-        onclick={() => getClaves()}>🔑 {getText} clave pública</button
+        onclick={() => {
+          !expand ? getClaves() : (expand = false);
+        }}>🔑 {getText} clave pública</button
       >
       {#if expand}
         <span id="e" class="font-semibold mx-2" transition:slide
@@ -85,7 +86,11 @@
             <button
               class="bg-amber-50 p-2 cursor-pointer hover:scale-105 font-semibold
               {showStates[index] ? 'rounded-t-md' : 'rounded-md'}"
-              onclick={() => getMessage(index)}
+              onclick={() => {
+                !showStates[index]
+                  ? getMessage(index)
+                  : (showStates[index] = false);
+              }}
             >
               {crypt}
             </button>
