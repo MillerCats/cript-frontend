@@ -8,16 +8,26 @@ import "./src/styles/global.css";
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Onest:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
     <meta name="generator" content={Astro.generator} />
     <title>Astro Basics</title>
   </head>
   <body>
-    <slot />
+    <main class="p-4">
+      <slot />
+    </main>
   </body>
 </html>
 
-<style>
-  html,
+<style is:global>
+  html {
+    font-family: "Onest", sans-serif;
+    scroll-behavior: smooth;
+  }
+  ,
   body {
     margin: 0;
     width: 100%;

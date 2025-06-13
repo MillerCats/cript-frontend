@@ -1,12 +1,19 @@
-<!-- src/components/LoginForm.astro -->
+---
+
+---
+
 <div class="min-h-screen flex items-center justify-center bg-gray-100 px-4">
   <div class="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg">
-    <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Iniciar Sesión</h2>
+    <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">
+      Iniciar Sesión
+    </h2>
     <form class="space-y-5">
       <div>
-        <label for="email" class="block text-sm font-medium text-gray-700">Correo electrónico</label>
+        <label for="email" class="block text-sm font-medium text-gray-700"
+          >Correo electrónico</label
+        >
         <input
-          type="email"
+          type="text"
           id="email"
           class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="ejemplo@correo.com"
@@ -15,26 +22,33 @@
       </div>
 
       <div>
-        <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
+        <label for="password" class="block text-sm font-medium text-gray-700"
+          >Contraseña</label
+        >
         <input
-          type="password"
+          type="text"
           id="password"
           class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="••••••••"
-          required
+          placeholder=""
         />
       </div>
 
       <div class="flex items-center justify-between text-sm">
         <label class="flex items-center">
-          <input type="checkbox" class="h-4 w-4 text-blue-600 rounded border-gray-300" />
+          <input
+            type="checkbox"
+            class="h-4 w-4 text-blue-600 rounded border-gray-300"
+          />
           <span class="ml-2 text-gray-600">Recuérdame</span>
         </label>
-        <a href="#" class="text-blue-500 hover:underline">¿Olvidaste tu contraseña?</a>
+        <a href="#" class="text-blue-500 hover:underline"
+          >¿Olvidaste tu contraseña?</a
+        >
       </div>
 
       <button
-        type="submit"
+        type="button"
+        id="btnLogin"
         class="w-full bg-blue-600 text-white py-2 rounded-xl hover:bg-blue-700 transition"
       >
         Entrar
@@ -47,3 +61,23 @@
     </p>
   </div>
 </div>
+
+<script type="module">
+  document.addEventListener("DOMContentLoaded", () => {
+    const btnLogin = document.getElementById("btnLogin");
+    btnLogin.addEventListener("click", async () => {
+      const input = document.getElementById("email").value;
+      const data = { mensaje: input };
+      const result = await fetch("http://127.0.0.1:8000/cifrar/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      }).then((response) => response.json());
+
+      document.getElementById("password").value = result.mensaje;
+      console.log(result);
+    });
+  });
+</script>
