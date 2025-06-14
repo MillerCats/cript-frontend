@@ -1,6 +1,29 @@
 <script>
   import { slide } from "svelte/transition";
 
+  const userId = crypto.randomUUID();
+  const socket = new WebSocket("ws://127.0.0.1:8000/ws/chat");
+  let messages = $state([]); //{text: "", sent:true/false}
+
+  socket.onopen = () => {
+    console.log("Conectado al WebSocket");
+  };
+
+  socket.onmessage = (e) => {
+    const data = JSON.parse(e.data);
+    if (data.id !== userId) {
+      messages = [...messages, { text: data.text, sent: false }];
+    }
+  };
+
+  function sendMessages(msg) {
+    const data = JSON.stringify({ id: userId, text: msg });
+    socket.send(data);
+  }
+  socket.onerror = (err) => {
+    console.error("WebSocket error", err);
+  };
+
   let expand = $state(false);
   let showStates = $state([]);
   let message = $state("");
@@ -18,8 +41,6 @@
     expand = true;
   }
 
-  let messageCrypts = $state([]);
-
   async function sendMessage() {
     const res = await fetch("http://127.0.0.1:8000/cifrar", {
       method: "POST",
@@ -32,8 +53,9 @@
         n: keys.n,
       }),
     }).then((response) => response.json());
-    messageCrypts = [...messageCrypts, res.cifrado];
+    messages = [...messages, { text: res.cifrado, sent: true }];
     showStates = [...showStates, false];
+    sendMessages(res.cifrado);
     message = "";
   }
 
@@ -46,7 +68,7 @@
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        cifrado: messageCrypts[index],
+        cifrado: messages[index].text,
         d: keys.d,
         n: keys.n,
       }),
@@ -76,13 +98,16 @@
       {/if}
     </div>
 
-    {#if messageCrypts.length}
+    {#if messages.length}
       <div
         class="bg-green-100/50 p-2 rounded-lg shadow-lg mb-4 flex flex-col"
         transition:slide
       >
-        {#each messageCrypts as crypt, index}
-          <div class="flex flex-col self-end max-w-fit my-2 transition-all">
+        {#each messages as msg, index}
+          <div
+            class="flex flex-col max-w-fit my-2 transition-all
+            {msg.sent ? 'self-end' : 'self-start'} "
+          >
             <button
               class="bg-amber-50 p-2 cursor-pointer hover:scale-105 font-semibold
               {showStates[index] ? 'rounded-t-md' : 'rounded-md'}"
@@ -92,7 +117,7 @@
                   : (showStates[index] = false);
               }}
             >
-              {crypt}
+              {msg.text}
             </button>
             {#if showStates[index]}
               <p
