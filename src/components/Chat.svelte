@@ -24,11 +24,27 @@
     console.error("WebSocket error", err);
   };
 
+  let d = $state(0);
   let expand = $state(false);
   let showStates = $state([]);
   let message = $state("");
   let getText = $derived(expand ? "Ocultar" : "Obtener");
-  let keys = $state({ e: 0, n: 0, d: 0 });
+  let keys = $state({ e: 0, n: 0 });
+
+  async function verifiedKey() {
+    const res = await fetch("http://127.0.0.1:8000/vulnerar", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        d: d !== "" ? parseInt(d) : 0,
+        n: keys.n,
+        e: keys.e,
+      }),
+    }).then((response) => response.json());
+    d = res.is_valid ? d : 0;
+  }
 
   async function getClaves() {
     const res = await fetch("http://127.0.0.1:8000/clave", {
@@ -69,7 +85,7 @@
       },
       body: JSON.stringify({
         cifrado: messages[index].text,
-        d: keys.d,
+        d: d,
         n: keys.n,
       }),
     }).then((response) => response.json());
@@ -98,19 +114,39 @@
       {/if}
     </div>
 
+    <div class="flex flex-row justify-center items-center m-4 gap-2">
+      <span>Ingresar el valor de "d": </span>
+      <input
+        id="d"
+        bind:value={d}
+        placeholder="0"
+        class="bg-green-50 border-2 border-green-300 focus:outline-green-500 w-20 rounded-md p-1"
+      />
+      <button
+        disabled={!expand}
+        onclick={() => verifiedKey()}
+        class="rounded-md px-3 py-1 shadow-md
+        {expand
+          ? 'bg-green-400 cursor-pointer hover:scale-110 transition-all'
+          : 'bg-green-200'}">Corroborar</button
+      >
+    </div>
+
     {#if messages.length}
       <div
         class="bg-green-100/50 p-2 rounded-lg shadow-lg mb-4 flex flex-col"
-        transition:slide
+        in:slide
       >
         {#each messages as msg, index}
           <div
             class="flex flex-col max-w-fit my-2 transition-all
-            {msg.sent ? 'self-end' : 'self-start'} "
+            {msg.sent ? 'self-end' : 'self-start'}"
+            in:slide
           >
             <button
-              class="bg-amber-50 p-2 cursor-pointer hover:scale-105 font-semibold
-              {showStates[index] ? 'rounded-t-md' : 'rounded-md'}"
+              class="p-2 cursor-pointer hover:scale-105 font-semibold text-sm
+              {showStates[index] ? 'rounded-t-md' : 'rounded-md'} 
+              {msg.sent ? 'bg-blue-100' : 'bg-amber-50'}"
               onclick={() => {
                 !showStates[index]
                   ? getMessage(index)
@@ -121,10 +157,11 @@
             </button>
             {#if showStates[index]}
               <p
-                class="bg-gray-50 p-1 rounded-b-md text-sm font-bold text-end"
+                class="bg-gray-50 p-1 px-2 rounded-b-md text-[13px] font-bold
+                {msg.sent ? 'text-end' : 'text-start'}"
                 transition:slide
               >
-                {messageDecrypt[index]}
+                {d === 0 ? "No es posible decifrar" : messageDecrypt[index]}
               </p>
             {/if}
           </div>
